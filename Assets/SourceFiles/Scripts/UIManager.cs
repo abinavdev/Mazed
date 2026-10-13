@@ -17,6 +17,7 @@ namespace Mazed.UI
         [SerializeField] private TextMeshProUGUI timerText;
         [SerializeField] private TextMeshProUGUI scoreText;
         [SerializeField] private TextMeshProUGUI levelText;
+        [SerializeField] private TextMeshProUGUI difficultyText;
         [SerializeField] private TextMeshProUGUI keysText;
         [SerializeField] private TextMeshProUGUI quizProgressText;
         [SerializeField] private Button hudHintButton;
@@ -432,6 +433,10 @@ namespace Mazed.UI
             if (victoryPanel != null) victoryPanel.SetActive(false);
             if (messageBannerPanel != null) messageBannerPanel.SetActive(false);
             if (interactionPromptPanel != null) interactionPromptPanel.SetActive(false);
+            if (Quiz.QuizManager.Instance != null && Quiz.QuizManager.Instance.IsQuizOpen)
+            {
+                Quiz.QuizManager.Instance.CloseQuiz();
+            }
         }
 
         public void ToggleMusic()
@@ -592,11 +597,29 @@ namespace Mazed.UI
 
         public void UpdateHeaderMeta()
         {
-            if (levelText != null && LevelManager.Instance != null)
+            if (LevelManager.Instance == null) return;
+
+            var info = LevelManager.Instance.CurrentLevelInfo;
+            DifficultyLevel diff = LevelManager.Instance.CurrentDifficulty;
+            string diffStr = diff.ToString().ToUpper();
+            int lvlNum = LevelManager.Instance.CurrentLevelNumber;
+
+            if (levelText != null)
             {
-                var info = LevelManager.Instance.CurrentLevelInfo;
-                string diffStr = LevelManager.Instance.CurrentDifficulty.ToString().ToUpper();
-                levelText.text = info != null ? $"{diffStr} — {info.title.ToUpper()}" : "LEVEL 1";
+                string titleStr = info != null ? info.title.ToUpper() : $"LEVEL {lvlNum}";
+                levelText.text = $"<b>{titleStr}</b>";
+            }
+
+            if (difficultyText != null)
+            {
+                difficultyText.text = $"[{diffStr} DIFFICULTY • LEVEL {lvlNum}/10]";
+                difficultyText.color = diff switch
+                {
+                    DifficultyLevel.Easy => new Color(0.18f, 0.85f, 0.45f), // Emerald green
+                    DifficultyLevel.Medium => new Color(1f, 0.8f, 0.2f),     // Amber gold
+                    DifficultyLevel.Hard => new Color(1f, 0.35f, 0.35f),    // Crimson red
+                    _ => new Color(1f, 0.8f, 0.2f)
+                };
             }
         }
 
@@ -878,6 +901,7 @@ namespace Mazed.UI
             {
                 LevelManager.Instance.LoadLevel(activeSelectTabDifficulty, level);
             }
+            UpdateHeaderMeta();
         }
 
         public void ShowPauseMenu(bool show)

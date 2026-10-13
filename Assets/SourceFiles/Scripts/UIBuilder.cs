@@ -123,24 +123,27 @@ namespace Mazed.UI
             topBarBg.color = new Color(0.04f, 0.07f, 0.12f, 0.90f);
 
             // Level Title (Top Left)
-            TextMeshProUGUI levelText = CreateText("LevelText", topBar.transform, "LEVEL 1 — BASIC MAZE", font, 24, TextAlignmentOptions.Left);
+            TextMeshProUGUI levelText = CreateText("LevelText", topBar.transform, "LEVEL 1 — BASIC MAZE", font, 19, TextAlignmentOptions.Left);
             RectTransform lvlRT = levelText.GetComponent<RectTransform>();
             lvlRT.anchorMin = new Vector2(0, 0.5f);
             lvlRT.anchorMax = new Vector2(0, 0.5f);
             lvlRT.pivot = new Vector2(0, 0.5f);
-            lvlRT.anchoredPosition = new Vector2(25, 12);
-            lvlRT.sizeDelta = new Vector2(350, 35);
+            lvlRT.anchoredPosition = new Vector2(25, 13);
+            lvlRT.sizeDelta = new Vector2(500, 32);
             levelText.color = new Color(0.3f, 0.85f, 1f);
+            levelText.textWrappingMode = TextWrappingModes.NoWrap;
+            levelText.overflowMode = TextOverflowModes.Ellipsis;
 
             // Difficulty Tag (Below Level Title)
-            TextMeshProUGUI diffText = CreateText("DifficultyText", topBar.transform, "[MEDIUM DIFFICULTY]", font, 16, TextAlignmentOptions.Left);
+            TextMeshProUGUI diffText = CreateText("DifficultyText", topBar.transform, "[MEDIUM DIFFICULTY • LEVEL 1/10]", font, 14, TextAlignmentOptions.Left);
             RectTransform dtRT = diffText.GetComponent<RectTransform>();
             dtRT.anchorMin = new Vector2(0, 0.5f);
             dtRT.anchorMax = new Vector2(0, 0.5f);
             dtRT.pivot = new Vector2(0, 0.5f);
-            dtRT.anchoredPosition = new Vector2(25, -16);
-            dtRT.sizeDelta = new Vector2(250, 25);
+            dtRT.anchoredPosition = new Vector2(25, -15);
+            dtRT.sizeDelta = new Vector2(350, 24);
             diffText.color = new Color(1f, 0.8f, 0.2f);
+            diffText.textWrappingMode = TextWrappingModes.NoWrap;
 
             // Timer (Center Left)
             TextMeshProUGUI timer = CreateText("TimerText", topBar.transform, "TIME: 08:00", font, 26, TextAlignmentOptions.Center);

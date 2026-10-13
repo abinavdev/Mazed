@@ -81,6 +81,12 @@ namespace StarterAssets
 
 }
 
+        public void SetSpawnPosition(Vector3 newSpawn, Quaternion newRot)
+        {
+            _startingPosition = newSpawn;
+            _startingRotation = newRot;
+        }
+
         private void ResetVerticalVelocity()
         {
             // Ensures no residual vertical velocity after respawning

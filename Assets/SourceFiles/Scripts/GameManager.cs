@@ -170,18 +170,37 @@ namespace Mazed.Core
 
             // 4. Reposition Player to level spawn point
             FindPlayerReferences();
-            if (playerObject != null)
+            if (playerObject != null && level != null)
             {
-                CharacterController cc = playerObject.GetComponent<CharacterController>();
+                CharacterController cc = playerObject.GetComponentInChildren<CharacterController>();
                 if (cc != null) cc.enabled = false;
+
+                Transform robot = playerObject.transform.Find("Robot");
+                if (robot != null)
+                {
+                    robot.localPosition = Vector3.zero;
+                    robot.localRotation = Quaternion.identity;
+                }
 
                 playerObject.transform.position = level.spawnPosition;
                 playerObject.transform.rotation = Quaternion.identity;
 
+                Physics.SyncTransforms();
+
                 if (cc != null) cc.enabled = true;
 
                 var tpc = playerObject.GetComponentInChildren<ThirdPersonController>();
-                if (tpc != null) tpc.ResetMovementState();
+                if (tpc != null)
+                {
+                    tpc.ResetMovementState();
+                    tpc.ResetCameraRotation(0f);
+                }
+
+                var respawn = playerObject.GetComponentInChildren<StarterAssets.RespawnPlayer>();
+                if (respawn != null)
+                {
+                    respawn.SetSpawnPosition(level.spawnPosition, Quaternion.identity);
+                }
 
                 var rb = playerObject.GetComponentInChildren<Rigidbody>();
                 if (rb != null)
@@ -189,8 +208,20 @@ namespace Mazed.Core
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                 }
+
+                var inputs = playerObject.GetComponentInChildren<StarterAssets.StarterAssetsInputs>();
+                if (inputs != null)
+                {
+                    inputs.isInputEnabled = true;
+                    inputs.move = Vector2.zero;
+                    inputs.look = Vector2.zero;
+                    inputs.jump = false;
+                    inputs.sprint = false;
+                    inputs.SetCursorState(true);
+                }
             }
 
+            Time.timeScale = 1f;
             SetGameState(GameState.Playing);
 
             // 5. Notify initial HUD states
@@ -199,6 +230,8 @@ namespace Mazed.Core
             OnInventoryUpdated?.Invoke(collectedKeyIds);
             OnQuizProgressUpdated?.Invoke(completedQuizCheckpointIds.Count, totalCheckpoints);
             UpdateObjectiveStatus();
+            UIManager.Instance?.HideAllModals();
+            UIManager.Instance?.UpdateHeaderMeta();
 
             Debug.Log($"[GameManager] Level {level.levelNumber} initialized with clean state (Score: 0, Time: {remainingTime}s).");
         }
@@ -537,16 +570,35 @@ namespace Mazed.Core
             FindPlayerReferences();
             if (playerObject != null && currentLevelInfo != null)
             {
-                CharacterController cc = playerObject.GetComponent<CharacterController>();
+                CharacterController cc = playerObject.GetComponentInChildren<CharacterController>();
                 if (cc != null) cc.enabled = false;
+
+                Transform robot = playerObject.transform.Find("Robot");
+                if (robot != null)
+                {
+                    robot.localPosition = Vector3.zero;
+                    robot.localRotation = Quaternion.identity;
+                }
 
                 playerObject.transform.position = currentLevelInfo.spawnPosition;
                 playerObject.transform.rotation = Quaternion.identity;
 
+                Physics.SyncTransforms();
+
                 if (cc != null) cc.enabled = true;
 
                 var tpc = playerObject.GetComponentInChildren<ThirdPersonController>();
-                if (tpc != null) tpc.ResetMovementState();
+                if (tpc != null)
+                {
+                    tpc.ResetMovementState();
+                    tpc.ResetCameraRotation(0f);
+                }
+
+                var respawn = playerObject.GetComponentInChildren<StarterAssets.RespawnPlayer>();
+                if (respawn != null)
+                {
+                    respawn.SetSpawnPosition(currentLevelInfo.spawnPosition, Quaternion.identity);
+                }
 
                 var rb = playerObject.GetComponentInChildren<Rigidbody>();
                 if (rb != null)
@@ -554,14 +606,27 @@ namespace Mazed.Core
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                 }
+
+                var inputs = playerObject.GetComponentInChildren<StarterAssets.StarterAssetsInputs>();
+                if (inputs != null)
+                {
+                    inputs.isInputEnabled = true;
+                    inputs.move = Vector2.zero;
+                    inputs.look = Vector2.zero;
+                    inputs.jump = false;
+                    inputs.sprint = false;
+                    inputs.SetCursorState(true);
+                }
             }
 
-            // 6. Close UI modals
+            // 6. Close UI modals & update header
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.HideAllModals();
+                UIManager.Instance.UpdateHeaderMeta();
             }
 
+            Time.timeScale = 1f;
             SetGameState(GameState.Playing);
 
             // 7. Refresh HUD displays immediately

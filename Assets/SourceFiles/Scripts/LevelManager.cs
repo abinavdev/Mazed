@@ -184,6 +184,7 @@ namespace Mazed.Core
         {
             currentDifficulty = diff;
             currentLevelNumber = 1;
+            UI.UIManager.Instance?.UpdateHeaderMeta();
         }
 
         public LevelInfo GetLevelInfo(DifficultyLevel diff, int levelNumber)
@@ -239,6 +240,13 @@ namespace Mazed.Core
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.InitializeLevel(info);
+            }
+
+            // 3. Update HUD header & clear lingering modals
+            if (UI.UIManager.Instance != null)
+            {
+                UI.UIManager.Instance.HideAllModals();
+                UI.UIManager.Instance.UpdateHeaderMeta();
             }
         }
 

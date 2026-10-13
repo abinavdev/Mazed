@@ -115,14 +115,19 @@ namespace Mazed.Environment
         {
             LoadDefaultAssets();
 
-            // Clear previous geometry
-            Transform existingMaze = transform.Find("MazeGeometry");
-            if (existingMaze != null)
+            // Clear previous geometry immediately to prevent PhysX collider ghosting
+            for (int i = transform.childCount - 1; i >= 0; i--)
             {
-                if (Application.isPlaying)
-                    Destroy(existingMaze.gameObject);
-                else
-                    DestroyImmediate(existingMaze.gameObject);
+                Transform child = transform.GetChild(i);
+                if (child.name.StartsWith("MazeGeometry"))
+                {
+                    child.gameObject.SetActive(false);
+                    child.name = "Destroyed_MazeGeometry";
+                    if (Application.isPlaying)
+                        Destroy(child.gameObject);
+                    else
+                        DestroyImmediate(child.gameObject);
+                }
             }
 
             GameObject mazeRoot = new GameObject("MazeGeometry");
@@ -875,11 +880,23 @@ namespace Mazed.Environment
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
-                CharacterController cc = player.GetComponent<CharacterController>();
+                // Disable CharacterController before moving transform
+                CharacterController cc = player.GetComponentInChildren<CharacterController>();
                 if (cc != null) cc.enabled = false;
+
+                // Reset child Robot local transform
+                Transform robot = player.transform.Find("Robot");
+                if (robot != null)
+                {
+                    robot.localPosition = Vector3.zero;
+                    robot.localRotation = Quaternion.identity;
+                }
 
                 player.transform.position = spawnPos;
                 player.transform.rotation = Quaternion.identity;
+
+                // Sync transforms into PhysX before re-enabling controller
+                Physics.SyncTransforms();
 
                 if (cc != null) cc.enabled = true;
 
@@ -890,11 +907,28 @@ namespace Mazed.Environment
                     tpc.ResetCameraRotation(0f);
                 }
 
+                var respawn = player.GetComponentInChildren<StarterAssets.RespawnPlayer>();
+                if (respawn != null)
+                {
+                    respawn.SetSpawnPosition(spawnPos, Quaternion.identity);
+                }
+
                 var rb = player.GetComponentInChildren<Rigidbody>();
                 if (rb != null)
                 {
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
+                }
+
+                var inputs = player.GetComponentInChildren<StarterAssets.StarterAssetsInputs>();
+                if (inputs != null)
+                {
+                    inputs.isInputEnabled = true;
+                    inputs.move = Vector2.zero;
+                    inputs.look = Vector2.zero;
+                    inputs.jump = false;
+                    inputs.sprint = false;
+                    inputs.SetCursorState(true);
                 }
             }
         }
