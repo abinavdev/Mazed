@@ -100,14 +100,15 @@ namespace Mazed.Core
             // Check if LevelManager exists, otherwise initialize default
             if (LevelManager.Instance != null)
             {
-                InitializeLevel(LevelManager.Instance.CurrentLevelInfo);
+                currentLevelInfo = LevelManager.Instance.CurrentLevelInfo;
+                if (currentLevelInfo != null && currentLevelInfo.timeLimit > 0f)
+                {
+                    initialTimeInSeconds = currentLevelInfo.timeLimit;
+                }
             }
-            else
-            {
-                remainingTime = initialTimeInSeconds;
-            }
+            remainingTime = initialTimeInSeconds;
 
-            // Always boot cleanly to the Landing Page / Main Menu
+            // Always boot cleanly to the Landing Page / Main Menu with free cursor
             GoToMainMenu();
         }
 
@@ -248,43 +249,63 @@ namespace Mazed.Core
                 }
 
                 OnTimerTick?.Invoke(remainingTime);
+            }
+            else
+            {
+                // Maintain visible/unlocked cursor in all menu states
+                if (Cursor.lockState != CursorLockMode.None || !Cursor.visible)
+                {
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                }
+            }
 
-                // Pause toggle
-                bool pausePressed = false;
+            // Handle Escape key across all states
+            bool escapePressed = false;
 #if ENABLE_INPUT_SYSTEM
-                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                {
-                    pausePressed = true;
-                }
-#elif ENABLE_LEGACY_INPUT_MANAGER
-                if (Input.GetKeyDown(KeyCode.Escape))
-                {
-                    pausePressed = true;
-                }
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                escapePressed = true;
+            }
 #endif
-                if (pausePressed)
-                {
-                    TogglePause();
-                }
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (!escapePressed && Input.GetKeyDown(KeyCode.Escape))
+            {
+                escapePressed = true;
+            }
+#endif
+            if (escapePressed)
+            {
+                HandleEscapeKey();
+            }
+        }
+
+        public void HandleEscapeKey()
+        {
+            if (QuizManager.Instance != null && QuizManager.Instance.IsQuizOpen)
+            {
+                QuizManager.Instance.CloseQuiz();
+                return;
+            }
+
+            if (UIManager.Instance != null && UIManager.Instance.IsAnySubModalOpen)
+            {
+                UIManager.Instance.CloseSubModals();
+                SetCursorLocked(false);
+                return;
+            }
+
+            if (currentState == GameState.Playing)
+            {
+                TogglePause();
             }
             else if (currentState == GameState.Paused)
             {
-                bool resumePressed = false;
-#if ENABLE_INPUT_SYSTEM
-                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                {
-                    resumePressed = true;
-                }
-#elif ENABLE_LEGACY_INPUT_MANAGER
-                if (Input.GetKeyDown(KeyCode.Escape))
-                {
-                    resumePressed = true;
-                }
-#endif
-                if (resumePressed)
-                {
-                    TogglePause();
-                }
+                TogglePause();
+            }
+            else if (currentState == GameState.DifficultySelect || currentState == GameState.LevelSelect)
+            {
+                GoToMainMenu();
             }
         }
 
@@ -316,6 +337,8 @@ namespace Mazed.Core
                     Time.timeScale = 1f;
                     SetPlayerInputActive(true);
                     SetCursorLocked(true);
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
                     break;
 
                 case GameState.MainMenu:
@@ -328,6 +351,8 @@ namespace Mazed.Core
                     Time.timeScale = 0f;
                     SetPlayerInputActive(false);
                     SetCursorLocked(false);
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
                     break;
             }
 
@@ -686,6 +711,15 @@ namespace Mazed.Core
                 {
                     inputComponent.isInputEnabled = active;
                 }
+
+#if ENABLE_INPUT_SYSTEM
+                var playerInput = playerObject.GetComponentInChildren<UnityEngine.InputSystem.PlayerInput>();
+                if (playerInput != null)
+                {
+                    if (active) playerInput.ActivateInput();
+                    else playerInput.DeactivateInput();
+                }
+#endif
             }
         }
 
@@ -699,7 +733,6 @@ namespace Mazed.Core
                 if (inputComponent != null)
                 {
                     inputComponent.SetCursorState(locked);
-                    return;
                 }
             }
 

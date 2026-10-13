@@ -518,6 +518,11 @@ namespace Mazed.UI
             HideAllModals();
             if (difficultyPanel != null) difficultyPanel.SetActive(true);
             UpdateDifficultyButtonVisuals();
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SetGameState(GameState.DifficultySelect);
+            }
+            EnsureCursorVisible();
         }
 
         public void SelectDifficulty(DifficultyLevel diff)
@@ -574,6 +579,7 @@ namespace Mazed.UI
             {
                 howToPlayPanel.SetActive(show);
             }
+            if (show) EnsureCursorVisible();
         }
 
         public void ShowSettings(bool show)
@@ -582,6 +588,32 @@ namespace Mazed.UI
             {
                 settingsPanel.SetActive(show);
                 if (show) UpdateAudioButtonVisuals();
+            }
+            if (show) EnsureCursorVisible();
+        }
+
+        public bool IsAnySubModalOpen => 
+            (settingsPanel != null && settingsPanel.activeSelf) ||
+            (howToPlayPanel != null && howToPlayPanel.activeSelf) ||
+            (difficultyPanel != null && difficultyPanel.activeSelf) ||
+            (levelSelectPanel != null && levelSelectPanel.activeSelf);
+
+        public void CloseSubModals()
+        {
+            if (settingsPanel != null && settingsPanel.activeSelf) settingsPanel.SetActive(false);
+            if (howToPlayPanel != null && howToPlayPanel.activeSelf) howToPlayPanel.SetActive(false);
+            if (difficultyPanel != null && difficultyPanel.activeSelf) ShowMainMenu();
+            if (levelSelectPanel != null && levelSelectPanel.activeSelf) ShowMainMenu();
+            EnsureCursorVisible();
+        }
+
+        public void EnsureCursorVisible()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlaying)
+            {
+                GameManager.Instance.SetCursorLocked(false);
             }
         }
 
@@ -795,6 +827,7 @@ namespace Mazed.UI
             {
                 GameManager.Instance.SetGameState(GameState.MainMenu);
             }
+            EnsureCursorVisible();
         }
 
         public void OnPlayClicked()
@@ -884,6 +917,12 @@ namespace Mazed.UI
                     }
                 }
             }
+
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlaying)
+            {
+                GameManager.Instance.SetGameState(GameState.LevelSelect);
+            }
+            EnsureCursorVisible();
         }
 
         public void SelectLevel(int level)
@@ -912,6 +951,7 @@ namespace Mazed.UI
                 if (show)
                 {
                     UpdateAudioButtonVisuals();
+                    EnsureCursorVisible();
                 }
             }
         }
@@ -923,6 +963,7 @@ namespace Mazed.UI
             {
                 levelCompletePanel.SetActive(true);
             }
+            EnsureCursorVisible();
 
             if (GameManager.Instance != null)
             {
@@ -990,6 +1031,7 @@ namespace Mazed.UI
             {
                 gameOverPanel.SetActive(true);
             }
+            EnsureCursorVisible();
 
             if (gameOverTitleText != null)
             {
@@ -1015,6 +1057,7 @@ namespace Mazed.UI
             {
                 victoryPanel.SetActive(true);
             }
+            EnsureCursorVisible();
 
             DifficultyLevel diff = LevelManager.Instance != null ? LevelManager.Instance.CurrentDifficulty : DifficultyLevel.Medium;
 

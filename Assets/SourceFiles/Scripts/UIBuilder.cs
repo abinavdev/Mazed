@@ -99,9 +99,18 @@ namespace Mazed.UI
                 }
             }
 
+            if (es != null)
+            {
+                es.enabled = true;
+            }
+
             if (uiMod != null)
             {
-                uiMod.AssignDefaultActions();
+                uiMod.enabled = true;
+                if (uiMod.actionsAsset == null)
+                {
+                    uiMod.AssignDefaultActions();
+                }
             }
         }
 

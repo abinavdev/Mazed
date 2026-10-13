@@ -17,7 +17,7 @@ namespace StarterAssets
 		public bool analogMovement;
 
 		[Header("Mouse Cursor Settings")]
-		public bool cursorLocked = true;
+		public bool cursorLocked = false;
 		public bool cursorInputForLook = true;
 
 
@@ -77,7 +77,14 @@ namespace StarterAssets
 
 		private void Awake()
 		{
-			SetCursorState(cursorLocked);
+			bool isPlaying = Mazed.Core.GameManager.Instance != null && Mazed.Core.GameManager.Instance.IsPlaying;
+			SetCursorState(isPlaying);
+		}
+
+		private void Start()
+		{
+			bool isPlaying = Mazed.Core.GameManager.Instance != null && Mazed.Core.GameManager.Instance.IsPlaying;
+			SetCursorState(isPlaying);
 		}
 
 		public void MoveInput(Vector2 newMoveDirection)
@@ -104,7 +111,12 @@ namespace StarterAssets
 		{
 			if (hasFocus)
 			{
-				SetCursorState(cursorLocked);
+				bool isPlaying = Mazed.Core.GameManager.Instance != null && Mazed.Core.GameManager.Instance.IsPlaying;
+				SetCursorState(isPlaying);
+			}
+			else
+			{
+				SetCursorState(false);
 			}
 		}
 

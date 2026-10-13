@@ -923,12 +923,13 @@ namespace Mazed.Environment
                 var inputs = player.GetComponentInChildren<StarterAssets.StarterAssetsInputs>();
                 if (inputs != null)
                 {
-                    inputs.isInputEnabled = true;
+                    bool isPlaying = Mazed.Core.GameManager.Instance != null && Mazed.Core.GameManager.Instance.IsPlaying;
+                    inputs.isInputEnabled = isPlaying;
                     inputs.move = Vector2.zero;
                     inputs.look = Vector2.zero;
                     inputs.jump = false;
                     inputs.sprint = false;
-                    inputs.SetCursorState(true);
+                    inputs.SetCursorState(isPlaying);
                 }
             }
         }
@@ -1054,9 +1055,15 @@ namespace Mazed.Environment
                 tppFollow.AvoidObstacles.DampingFromCollision = 0.2f;
             }
 
-            if (GameManager.Instance != null && GameManager.Instance.IsPlaying)
+            bool isPlaying = GameManager.Instance != null && GameManager.Instance.IsPlaying;
+            if (GameManager.Instance != null)
             {
-                GameManager.Instance.SetCursorLocked(true);
+                GameManager.Instance.SetCursorLocked(isPlaying);
+            }
+            else
+            {
+                Cursor.lockState = isPlaying ? CursorLockMode.Locked : CursorLockMode.None;
+                Cursor.visible = !isPlaying;
             }
         }
 

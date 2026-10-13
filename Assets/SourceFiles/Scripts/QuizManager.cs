@@ -95,6 +95,12 @@ namespace Mazed.Quiz
             var kb = Keyboard.current;
             if (kb == null) return;
 
+            if (kb.escapeKey.wasPressedThisFrame)
+            {
+                CloseQuiz();
+                return;
+            }
+
             // Option selection (1-4 or A-D)
             if (isAnsweringActive && currentQuestion != null)
             {
@@ -392,8 +398,8 @@ namespace Mazed.Quiz
             }
             else
             {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
         }
     }
